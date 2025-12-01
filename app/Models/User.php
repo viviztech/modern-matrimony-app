@@ -36,6 +36,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_admin',
         'premium_until',
         'profile_completion_percentage',
+        'notification_preferences',
         'last_active_at',
         'last_login_at',
         'last_login_ip',
@@ -77,6 +78,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'deleted_at' => 'datetime',
             'banned_at' => 'datetime',
             'suspended_until' => 'datetime',
+            'notification_preferences' => 'array',
         ];
     }
 

@@ -11,6 +11,7 @@ use App\Http\Controllers\VideoVerificationController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StoryController;
+use App\Http\Controllers\GameController;
 use App\Http\Controllers\Admin\ModerationController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -128,6 +129,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/stories/{story}', [StoryController::class, 'destroy'])->name('stories.destroy');
     Route::get('/stories/{story}/viewers', [StoryController::class, 'viewers'])->name('stories.viewers');
     Route::post('/stories/{story}/like', [StoryController::class, 'like'])->name('stories.like');
+
+    // Game routes
+    Route::get('/games', [GameController::class, 'index'])->name('games.index');
+    Route::get('/games/create/{partner}', [GameController::class, 'create'])->name('games.create');
+    Route::post('/games/create/{partner}', [GameController::class, 'store'])->name('games.store');
+    Route::get('/games/{game}/play', [GameController::class, 'play'])->name('games.play');
+    Route::post('/games/{game}/submit', [GameController::class, 'submitAnswers'])->name('games.submit');
+    Route::get('/games/{game}/results', [GameController::class, 'results'])->name('games.results');
 });
 
 // Admin routes

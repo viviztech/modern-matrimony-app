@@ -9,6 +9,7 @@ use App\Http\Controllers\VideoCallController;
 use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\VideoVerificationController;
 use App\Http\Controllers\SocialAuthController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\Admin\ModerationController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -110,6 +111,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/settings', function () {
         return view('settings.index');
     })->name('settings');
+
+    // Notification routes
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead'])->name('notifications.read');
+    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
+    Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+    Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
 });
 
 // Admin routes

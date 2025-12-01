@@ -264,6 +264,50 @@
             </div>
         </div>
 
+        <!-- Notifications -->
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mb-6">
+            <div class="p-6 border-b border-gray-200 dark:border-gray-700">
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-white">Notifications</h2>
+            </div>
+            <div class="p-6 space-y-4">
+                <a href="{{ route('notifications') }}" class="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors">
+                    <div class="flex items-center gap-3">
+                        <div class="p-2 bg-yellow-100 dark:bg-yellow-900/30 rounded-lg">
+                            <svg class="w-6 h-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                            </svg>
+                        </div>
+                        <div>
+                            <p class="font-medium text-gray-900 dark:text-white">Notification Center</p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">View all your notifications</p>
+                        </div>
+                    </div>
+                    <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </a>
+
+                <div class="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                    <h3 class="font-medium text-gray-900 dark:text-white mb-3">Email Notifications</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-3">Choose which email notifications you want to receive</p>
+                    <div class="space-y-2">
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">New matches</span>
+                            <input type="checkbox" class="toggle-checkbox" checked>
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">New messages</span>
+                            <input type="checkbox" class="toggle-checkbox">
+                        </label>
+                        <label class="flex items-center justify-between cursor-pointer">
+                            <span class="text-sm text-gray-700 dark:text-gray-300">Profile likes (Premium)</span>
+                            <input type="checkbox" class="toggle-checkbox" {{ auth()->user()->isPremium() ? '' : 'disabled' }}>
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Privacy & Security -->
         <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg mb-6">
             <div class="p-6 border-b border-gray-200 dark:border-gray-700">

@@ -10,6 +10,7 @@ use App\Http\Controllers\VerificationController;
 use App\Http\Controllers\VideoVerificationController;
 use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\StoryController;
 use App\Http\Controllers\Admin\ModerationController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -118,6 +119,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
     Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
     Route::get('/notifications/unread-count', [NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
+
+    // Story routes
+    Route::get('/stories', [StoryController::class, 'index'])->name('stories.index');
+    Route::get('/stories/create', [StoryController::class, 'create'])->name('stories.create');
+    Route::post('/stories', [StoryController::class, 'store'])->name('stories.store');
+    Route::get('/stories/{story}', [StoryController::class, 'show'])->name('stories.show');
+    Route::delete('/stories/{story}', [StoryController::class, 'destroy'])->name('stories.destroy');
+    Route::get('/stories/{story}/viewers', [StoryController::class, 'viewers'])->name('stories.viewers');
+    Route::post('/stories/{story}/like', [StoryController::class, 'like'])->name('stories.like');
 });
 
 // Admin routes

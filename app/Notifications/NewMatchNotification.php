@@ -34,11 +34,10 @@ class NewMatchNotification extends Notification implements ShouldQueue
     {
         return (new MailMessage)
             ->subject('You have a new match!')
-            ->greeting('Congratulations!')
-            ->line('You matched with ' . $this->matchedUser->name . '!')
-            ->line('Start chatting now to get to know each other better.')
-            ->action('View Profile', route('profile.show', $this->matchedUser))
-            ->line('Good luck!');
+            ->view('emails.match-notification', [
+                'match' => $this->match,
+                'matchedUser' => $this->matchedUser,
+            ]);
     }
 
     public function toArray(object $notifiable): array

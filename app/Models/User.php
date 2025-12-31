@@ -9,10 +9,11 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Scout\Searchable;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasFactory, Notifiable, SoftDeletes;
+    use HasFactory, Notifiable, SoftDeletes, Searchable;
 
     /**
      * The attributes that are mass assignable.
@@ -38,6 +39,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'profile_completion_percentage',
         'notification_preferences',
         'last_active_at',
+        'online_at',
+        'is_online',
         'last_login_at',
         'last_login_ip',
         'banned_at',
@@ -74,6 +77,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'is_admin' => 'boolean',
             'premium_until' => 'datetime',
             'last_active_at' => 'datetime',
+            'online_at' => 'datetime',
+            'is_online' => 'boolean',
             'last_login_at' => 'datetime',
             'deleted_at' => 'datetime',
             'banned_at' => 'datetime',
@@ -368,6 +373,49 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * Get user's payments.
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
+     * Get user's saved searches.
+     */
+    public function savedSearches(): HasMany
+    {
+        return $this->hasMany(SavedSearch::class);
+    }
+
+    /**
+     * Get user's profile boosts.
+     */
+    public function profileBoosts(): HasMany
+    {
+        return $this->hasMany(ProfileBoost::class);
+    }
+
+    /**
+     * Get active profile boost.
+     */
+    public function activeBoost()
+    {
+        return $this->profileBoosts()
+            ->where('expires_at', '>', now())
+            ->latest()
+            ->first();
+    }
+
+    /**
+     * Check if user has active boost.
+     */
+    public function hasActiveBoost(): bool
+    {
+        return $this->activeBoost() !== null;
+    }
+
+    /**
      * Get user's active subscription.
      */
     public function activeSubscription(): ?Subscription
@@ -442,5 +490,135 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         return $query->whereNotNull('suspended_until')
             ->where('suspended_until', '>', now());
+    }
+
+    /**
+     * Get the indexable data array for the model.
+     */
+    public function toSearchableArray(): array
+    {
+        $profile = $this->profile;
+
+        return [
+            'id' => $this->id,
+            'name' => $this->name,
+            'gender' => $this->gender,
+            'age' => $this->age,
+            'city' => $this->city,
+            'state' => $this->state,
+            'country' => $this->country,
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'is_active' => $this->is_active,
+            'is_premium' => $this->is_premium,
+            'last_active_at' => $this->last_active_at?->timestamp,
+            'created_at' => $this->created_at->timestamp,
+
+            // Profile data
+            'bio' => $profile?->bio,
+            'looking_for' => $profile?->looking_for,
+            'height' => $profile?->height,
+            'body_type' => $profile?->body_type,
+            'education' => $profile?->education,
+            'field_of_study' => $profile?->field_of_study,
+            'occupation' => $profile?->occupation,
+            'company' => $profile?->company,
+            'annual_income_range' => $profile?->annual_income_range,
+            'religion' => $profile?->religion,
+            'caste' => $profile?->caste,
+            'mother_tongue' => $profile?->mother_tongue,
+            'languages_known' => $profile?->languages_known ?? [],
+            'marital_status' => $profile?->marital_status,
+            'have_children' => $profile?->have_children ?? false,
+            'children_count' => $profile?->children_count,
+            'diet' => $profile?->diet,
+            'drinking' => $profile?->drinking,
+            'smoking' => $profile?->smoking,
+            'interests' => $profile?->interests ?? [],
+            'hobbies' => $profile?->hobbies ?? [],
+            'personality_type' => $profile?->personality_type,
+
+            // Family data
+            'family_type' => $profile?->family_type,
+            'family_values' => $profile?->family_values,
+            'family_location' => $profile?->family_location,
+
+            // Verification flags
+            'has_video_intro' => !empty($profile?->video_intro_url),
+            'email_verified' => $this->hasVerifiedEmail(),
+            'phone_verified' => $this->hasVerifiedPhone(),
+            'video_verified' => $this->hasVerifiedVideo(),
+            'is_verified' => $this->hasVerifiedPhone() || $this->hasVerifiedVideo(),
+            'verification_count' => $this->getVerificationCount(),
+
+            // Photos
+            'has_photos' => $this->photos()->count() > 0,
+            'photos_count' => $this->photos()->count(),
+
+            // Activity metrics
+            'profile_completion' => $this->profile_completion_percentage ?? 0,
+            'is_online' => $this->isOnline(),
+        ];
+    }
+
+    /**
+     * Determine if the model should be searchable.
+     */
+    public function shouldBeSearchable(): bool
+    {
+        return $this->is_active &&
+               !$this->isBanned() &&
+               !$this->isSuspended() &&
+               $this->profile !== null;
+    }
+
+    /**
+     * Check if user is currently online.
+     * Uses cache-based detection with 5-minute expiry.
+     */
+    public function isOnline(): bool
+    {
+        return \Cache::has('user-online-' . $this->id);
+    }
+
+    /**
+     * Get user's online status for display.
+     * Returns 'online', 'recently', or formatted time.
+     */
+    public function getOnlineStatus(): string
+    {
+        if ($this->isOnline()) {
+            return 'online';
+        }
+
+        if (!$this->last_active_at) {
+            return 'offline';
+        }
+
+        $minutesAgo = $this->last_active_at->diffInMinutes(now());
+
+        if ($minutesAgo < 60) {
+            return 'recently'; // Active within last hour
+        }
+
+        return $this->last_active_at->diffForHumans();
+    }
+
+    /**
+     * Scope to get online users.
+     */
+    public function scopeOnline($query)
+    {
+        // Get list of online user IDs from cache
+        $onlineUserIds = [];
+        $cacheKeys = \Cache::get('online-user-ids', []);
+
+        foreach ($cacheKeys as $userId) {
+            if (\Cache::has('user-online-' . $userId)) {
+                $onlineUserIds[] = $userId;
+            }
+        }
+
+        return $query->whereIn('id', $onlineUserIds);
     }
 }

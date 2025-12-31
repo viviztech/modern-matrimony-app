@@ -23,12 +23,19 @@
                 @endif
 
                 <div>
-                    <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
-                        {{ $otherUser->name }}
-                        @if($otherUser->age)
-                            <span class="text-gray-500 dark:text-gray-400 font-normal">, {{ $otherUser->age }}</span>
-                        @endif
-                    </h2>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+                            {{ $otherUser->name }}
+                            @if($otherUser->age)
+                                <span class="text-gray-500 dark:text-gray-400 font-normal">, {{ $otherUser->age }}</span>
+                            @endif
+                        </h2>
+                        <!-- Online Status Indicator -->
+                        <span id="onlineStatusBadge" class="flex items-center gap-1 text-xs px-2 py-0.5 rounded-full {{ $otherUser->isOnline() ? 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300' : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400' }}">
+                            <span class="w-2 h-2 rounded-full {{ $otherUser->isOnline() ? 'bg-green-500 animate-pulse' : 'bg-gray-400' }}"></span>
+                            <span id="onlineStatusText">{{ $otherUser->getOnlineStatus() }}</span>
+                        </span>
+                    </div>
                     @if($otherUser->profile)
                         <p class="text-sm text-gray-500 dark:text-gray-400">
                             {{ $otherUser->profile->occupation ?? 'Professional' }}
@@ -70,6 +77,28 @@
 
         <!-- Messages Container -->
         <div id="messagesContainer" class="flex-1 bg-white dark:bg-gray-800 overflow-y-auto p-6 space-y-4">
+            <!-- Typing Indicator (hidden by default) -->
+            <div id="typingIndicator" class="hidden">
+                <div class="flex items-end gap-2 max-w-md">
+                @if($otherUser->primaryPhoto)
+                    <img src="{{ $otherUser->primaryPhoto->url }}"
+                         alt="{{ $otherUser->name }}"
+                         class="w-8 h-8 rounded-full object-cover flex-shrink-0">
+                @else
+                    <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+                        {{ substr($otherUser->name, 0, 1) }}
+                    </div>
+                @endif
+                <div class="px-4 py-3 rounded-2xl bg-gray-100 dark:bg-gray-700">
+                    <div class="flex gap-1">
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                    </div>
+                </div>
+                </div>
+            </div>
+
             @forelse($messages as $message)
                 @php
                     $isSent = $message->sender_id === auth()->id();
@@ -218,14 +247,91 @@
 @push('scripts')
 <script>
     const conversationId = {{ $conversation->id }};
+    const currentUserId = {{ auth()->id() }};
+    const otherUserId = {{ $otherUser->id }};
     let lastMessageId = {{ $messages->last()->id ?? 0 }};
-    let polling;
+    let messagingClient = null;
+    let typingTimeout = null;
+
+    // Initialize real-time messaging client
+    document.addEventListener('DOMContentLoaded', function() {
+        if (window.createMessagingClient) {
+            messagingClient = window.createMessagingClient(conversationId, currentUserId, otherUserId);
+
+            // Request notification permission
+            window.requestNotificationPermission();
+
+            // Listen for real-time events
+            setupRealtimeListeners();
+        }
+    });
+
+    // Setup real-time event listeners
+    function setupRealtimeListeners() {
+        // New message received
+        window.addEventListener('message:received', (event) => {
+            const message = event.detail.message;
+            if (message.sender_id !== currentUserId) {
+                appendMessage(message, false);
+
+                // Mark as read if window is focused
+                if (document.hasFocus()) {
+                    messagingClient.markAsRead();
+                }
+            }
+        });
+
+        // Message read receipt
+        window.addEventListener('message:read', (event) => {
+            updateReadReceipts(event.detail.message_ids);
+        });
+
+        // Typing started
+        window.addEventListener('typing:started', (event) => {
+            showTypingIndicator();
+        });
+
+        // Typing stopped
+        window.addEventListener('typing:stopped', (event) => {
+            hideTypingIndicator();
+        });
+
+        // User online status changed
+        window.addEventListener('user:status-changed', (event) => {
+            if (event.detail.userId === otherUserId) {
+                updateOnlineStatus(event.detail.isOnline);
+            }
+        });
+
+        // Echo connection status
+        window.addEventListener('echo:connected', () => {
+            console.log('Real-time connection established');
+        });
+
+        window.addEventListener('echo:disconnected', () => {
+            console.warn('Real-time connection lost');
+        });
+    }
 
     // Auto-resize textarea
     const textarea = document.getElementById('messageInput');
     textarea.addEventListener('input', function() {
         this.style.height = '48px';
         this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+
+        // Send typing indicator
+        if (messagingClient && this.value.trim()) {
+            messagingClient.sendTypingStarted();
+        } else if (messagingClient) {
+            messagingClient.sendTypingStopped();
+        }
+    });
+
+    // Stop typing when user stops typing for 1 second
+    textarea.addEventListener('blur', function() {
+        if (messagingClient) {
+            messagingClient.sendTypingStopped();
+        }
     });
 
     // Handle form submission
@@ -234,6 +340,11 @@
 
         const content = textarea.value.trim();
         if (!content) return;
+
+        // Stop typing indicator
+        if (messagingClient) {
+            messagingClient.sendTypingStopped();
+        }
 
         try {
             const response = await fetch(`/messages/${conversationId}`, {
@@ -257,23 +368,6 @@
             console.error('Error sending message:', error);
         }
     });
-
-    // Poll for new messages
-    async function pollMessages() {
-        try {
-            const response = await fetch(`/messages/${conversationId}/messages?since=${lastMessageId}`);
-            const data = await response.json();
-
-            data.messages.forEach(message => {
-                if (message.id > lastMessageId) {
-                    appendMessage(message, false);
-                    lastMessageId = message.id;
-                }
-            });
-        } catch (error) {
-            console.error('Error polling messages:', error);
-        }
-    }
 
     // Append message to container
     function appendMessage(message, isSent) {
@@ -304,16 +398,74 @@
         return div.innerHTML;
     }
 
+    // Show typing indicator
+    function showTypingIndicator() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) {
+            indicator.classList.remove('hidden');
+            scrollToBottom();
+        }
+    }
+
+    // Hide typing indicator
+    function hideTypingIndicator() {
+        const indicator = document.getElementById('typingIndicator');
+        if (indicator) {
+            indicator.classList.add('hidden');
+        }
+    }
+
+    // Update read receipts
+    function updateReadReceipts(messageIds) {
+        // This would update the UI to show messages as read
+        // For now, we'll just log it
+        console.log('Messages read:', messageIds);
+    }
+
+    // Update online status
+    function updateOnlineStatus(isOnline) {
+        const badge = document.getElementById('onlineStatusBadge');
+        const text = document.getElementById('onlineStatusText');
+        const dot = badge?.querySelector('.w-2.h-2');
+
+        if (isOnline) {
+            badge?.classList.remove('bg-gray-100', 'text-gray-600', 'dark:bg-gray-700', 'dark:text-gray-400');
+            badge?.classList.add('bg-green-100', 'text-green-700', 'dark:bg-green-900', 'dark:text-green-300');
+            dot?.classList.remove('bg-gray-400');
+            dot?.classList.add('bg-green-500', 'animate-pulse');
+            if (text) text.textContent = 'online';
+        } else {
+            badge?.classList.remove('bg-green-100', 'text-green-700', 'dark:bg-green-900', 'dark:text-green-300');
+            badge?.classList.add('bg-gray-100', 'text-gray-600', 'dark:bg-gray-700', 'dark:text-gray-400');
+            dot?.classList.remove('bg-green-500', 'animate-pulse');
+            dot?.classList.add('bg-gray-400');
+            if (text) text.textContent = 'offline';
+        }
+    }
+
+    // Scroll to bottom of messages
+    function scrollToBottom() {
+        const container = document.getElementById('messagesContainer');
+        if (container) {
+            container.scrollTop = container.scrollHeight;
+        }
+    }
+
     // Scroll to bottom on load
-    const container = document.getElementById('messagesContainer');
-    container.scrollTop = container.scrollHeight;
+    scrollToBottom();
 
-    // Start polling every 3 seconds
-    polling = setInterval(pollMessages, 3000);
+    // Mark as read when window gains focus
+    window.addEventListener('focus', () => {
+        if (messagingClient) {
+            messagingClient.markAsRead();
+        }
+    });
 
-    // Stop polling when user leaves
+    // Disconnect messaging client on page unload
     window.addEventListener('beforeunload', () => {
-        clearInterval(polling);
+        if (messagingClient) {
+            messagingClient.disconnect();
+        }
     });
 
     // Video call functionality

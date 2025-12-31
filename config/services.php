@@ -115,4 +115,19 @@ return [
         ],
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Razorpay Payment Gateway Configuration
+    |--------------------------------------------------------------------------
+    |
+    | Configure Razorpay payment gateway for subscription payments.
+    |
+    */
+
+    'razorpay' => [
+        'key' => env('RAZORPAY_KEY'),
+        'secret' => env('RAZORPAY_SECRET'),
+        'webhook_secret' => env('RAZORPAY_WEBHOOK_SECRET'),
+    ],
+
 ];

@@ -12,6 +12,7 @@ use App\Http\Controllers\SocialAuthController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\StoryController;
 use App\Http\Controllers\GameController;
+use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Admin\ModerationController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
@@ -86,6 +87,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/messages/{conversation}/read', [MessageController::class, 'markAsRead'])->name('messages.read');
     Route::delete('/messages/message/{message}', [MessageController::class, 'destroy'])->name('messages.destroy');
     Route::get('/messages/{conversation}/search', [MessageController::class, 'search'])->name('messages.search');
+    Route::post('/messages/{conversation}/typing/start', [MessageController::class, 'typingStarted'])->name('messages.typing.start');
+    Route::post('/messages/{conversation}/typing/stop', [MessageController::class, 'typingStopped'])->name('messages.typing.stop');
 
     // Video call routes
     Route::post('/video-calls/initiate/{receiver}', [VideoCallController::class, 'initiate'])->name('video-calls.initiate');
@@ -137,7 +140,35 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/games/{game}/play', [GameController::class, 'play'])->name('games.play');
     Route::post('/games/{game}/submit', [GameController::class, 'submitAnswers'])->name('games.submit');
     Route::get('/games/{game}/results', [GameController::class, 'results'])->name('games.results');
+
+    // Search routes
+    Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+    Route::post('/search', [SearchController::class, 'search'])->name('search');
+    Route::get('/search/who-liked-you', [SearchController::class, 'whoLikedYou'])->name('search.who-liked-you');
+    Route::post('/search/save', [SearchController::class, 'saveSearch'])->name('search.save');
+    Route::get('/search/saved', [SearchController::class, 'savedSearches'])->name('search.saved');
+    Route::delete('/search/saved/{savedSearch}', [SearchController::class, 'deleteSavedSearch'])->name('search.saved.delete');
+    Route::get('/search/saved/{savedSearch}/run', [SearchController::class, 'runSavedSearch'])->name('search.saved.run');
+    Route::post('/profile/boost', [SearchController::class, 'boostProfile'])->name('profile.boost');
 });
+
+// Subscription & Payment routes
+Route::middleware(['auth'])->group(function () {
+    // Subscription plans
+    Route::get('/subscriptions', [App\Http\Controllers\SubscriptionController::class, 'index'])->name('subscriptions.index');
+    Route::get('/pricing', [App\Http\Controllers\SubscriptionController::class, 'index'])->name('pricing');
+    Route::get('/subscriptions/current', [App\Http\Controllers\SubscriptionController::class, 'show'])->name('subscriptions.show');
+    Route::get('/subscriptions/{plan}/checkout', [App\Http\Controllers\SubscriptionController::class, 'checkout'])->name('subscriptions.checkout');
+    Route::post('/subscriptions/{plan}/create-order', [App\Http\Controllers\SubscriptionController::class, 'createOrder'])->name('subscriptions.create-order');
+    Route::post('/subscriptions/verify-payment', [App\Http\Controllers\SubscriptionController::class, 'verifyPayment'])->name('subscriptions.verify-payment');
+    Route::post('/subscriptions/payment-failed', [App\Http\Controllers\SubscriptionController::class, 'paymentFailed'])->name('subscriptions.payment-failed');
+    Route::get('/subscriptions/{subscription}/success', [App\Http\Controllers\SubscriptionController::class, 'success'])->name('subscriptions.success');
+    Route::post('/subscriptions/cancel', [App\Http\Controllers\SubscriptionController::class, 'cancel'])->name('subscriptions.cancel');
+    Route::post('/subscriptions/resume', [App\Http\Controllers\SubscriptionController::class, 'resume'])->name('subscriptions.resume');
+});
+
+// Webhook routes (no auth middleware)
+Route::post('/webhooks/razorpay', [App\Http\Controllers\WebhookController::class, 'razorpay'])->name('webhooks.razorpay');
 
 // Admin routes
 Route::middleware(['auth', EnsureUserIsAdmin::class])->prefix('admin')->name('admin.')->group(function () {

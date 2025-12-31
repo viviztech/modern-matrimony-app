@@ -2,6 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\MessageRead;
+use App\Events\MessageSent;
+use App\Events\TypingStarted;
+use App\Events\TypingStopped;
 use App\Models\Conversation;
 use App\Models\Icebreaker;
 use App\Models\Message;
@@ -122,6 +126,9 @@ class MessageController extends Controller
 
         $message = Message::create($messageData);
 
+        // Broadcast MessageSent event for real-time delivery
+        broadcast(new MessageSent($message))->toOthers();
+
         if ($request->expectsJson()) {
             return response()->json([
                 'success' => true,
@@ -200,7 +207,19 @@ class MessageController extends Controller
             abort(403, 'Unauthorized');
         }
 
+        // Get message IDs that will be marked as read
+        $unreadMessages = $conversation->messages()
+            ->where('receiver_id', $user->id)
+            ->whereNull('read_at')
+            ->pluck('id')
+            ->toArray();
+
         $this->chatService->markConversationAsRead($conversation, $user);
+
+        // Broadcast MessageRead event for read receipts
+        if (!empty($unreadMessages)) {
+            broadcast(new MessageRead($conversation, $user, $unreadMessages))->toOthers();
+        }
 
         return response()->json([
             'success' => true,
@@ -298,6 +317,9 @@ class MessageController extends Controller
                 'content' => $duration ? "Voice message ({$duration}s)" : 'Voice message',
             ]);
 
+            // Broadcast MessageSent event for voice messages too
+            broadcast(new MessageSent($message))->toOthers();
+
             return response()->json([
                 'success' => true,
                 'message' => $message->load(['sender.profile']),
@@ -309,5 +331,41 @@ class MessageController extends Controller
                 'message' => $e->getMessage(),
             ], 500);
         }
+    }
+
+    /**
+     * Broadcast typing started event.
+     */
+    public function typingStarted(Conversation $conversation)
+    {
+        $user = Auth::user();
+
+        // Ensure user is part of this conversation
+        if ($conversation->user_one_id !== $user->id && $conversation->user_two_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Broadcast typing event
+        broadcast(new TypingStarted($conversation, $user))->toOthers();
+
+        return response()->json(['success' => true]);
+    }
+
+    /**
+     * Broadcast typing stopped event.
+     */
+    public function typingStopped(Conversation $conversation)
+    {
+        $user = Auth::user();
+
+        // Ensure user is part of this conversation
+        if ($conversation->user_one_id !== $user->id && $conversation->user_two_id !== $user->id) {
+            abort(403, 'Unauthorized');
+        }
+
+        // Broadcast typing stopped event
+        broadcast(new TypingStopped($conversation, $user))->toOthers();
+
+        return response()->json(['success' => true]);
     }
 }

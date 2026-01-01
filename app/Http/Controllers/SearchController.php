@@ -7,6 +7,8 @@ use App\Models\SavedSearch;
 use App\Models\ProfileBoost;
 use App\Services\SearchService;
 use App\Services\FeatureGateService;
+use App\Services\AnalyticsService;
+use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
@@ -15,12 +17,14 @@ class SearchController extends Controller
 {
     protected SearchService $searchService;
     protected FeatureGateService $featureGate;
+    protected AnalyticsService $analyticsService;
 
-    public function __construct(SearchService $searchService, FeatureGateService $featureGate)
+    public function __construct(SearchService $searchService, FeatureGateService $featureGate, AnalyticsService $analyticsService)
     {
         $this->middleware('auth');
         $this->searchService = $searchService;
         $this->featureGate = $featureGate;
+        $this->analyticsService = $analyticsService;
     }
 
     /**
@@ -156,6 +160,18 @@ class SearchController extends Controller
                 // Regular search
                 $searchResults = $this->searchService->search($filters, $user, $filters['per_page'] ?? 20);
             }
+
+            // Track search activity
+            $this->analyticsService->trackActivity(
+                $user,
+                UserActivity::TYPE_SEARCH_PERFORMED,
+                [
+                    'filters' => array_filter($filters, function($value) {
+                        return !is_null($value) && $value !== '';
+                    }),
+                    'results_count' => $searchResults['total']
+                ]
+            );
 
             // Return JSON for AJAX requests
             if ($request->expectsJson()) {

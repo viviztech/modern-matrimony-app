@@ -5,12 +5,21 @@ namespace App\Http\Controllers;
 use App\Models\Like;
 use App\Models\User;
 use App\Models\UserMatch;
+use App\Services\AnalyticsService;
+use App\Models\UserActivity;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class DiscoverController extends Controller
 {
+    protected $analyticsService;
+
+    public function __construct(AnalyticsService $analyticsService)
+    {
+        $this->analyticsService = $analyticsService;
+    }
+
     /**
      * Show discover/swipe interface
      */
@@ -115,6 +124,20 @@ class DiscoverController extends Controller
             'type' => $request->input('type', 'like'), // like or super_like
         ]);
 
+        // Track like sent activity
+        $this->analyticsService->trackActivity(
+            $user,
+            UserActivity::TYPE_LIKE_SENT,
+            [
+                'target_user_id' => $targetUser->id,
+                'type' => $request->input('type', 'like'),
+                'source' => 'discover'
+            ]
+        );
+
+        // Track profile view
+        $this->analyticsService->trackProfileView($user, $targetUser, 'discover');
+
         // Check for match
         $match = $like->checkForMatch();
 
@@ -124,6 +147,18 @@ class DiscoverController extends Controller
                 'user_id' => $targetUser->id,
                 'matched_user_id' => $user->id,
             ]);
+
+            // Track match created for both users
+            $this->analyticsService->trackActivity(
+                $user,
+                UserActivity::TYPE_MATCH_CREATED,
+                ['matched_user_id' => $targetUser->id]
+            );
+            $this->analyticsService->trackActivity(
+                $targetUser,
+                UserActivity::TYPE_MATCH_CREATED,
+                ['matched_user_id' => $user->id]
+            );
 
             return response()->json([
                 'success' => true,

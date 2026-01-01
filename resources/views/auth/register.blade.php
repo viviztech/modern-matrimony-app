@@ -116,7 +116,7 @@
                     class="mt-1 rounded border-gray-300 dark:border-gray-600 text-primary shadow-sm focus:ring-primary dark:bg-gray-700"
                 >
                 <label for="terms" class="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                    I agree to the <a href="#" class="text-primary hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Terms of Service</a> and <a href="#" class="text-primary hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Privacy Policy</a>
+                    I agree to the <a href="{{ route('legal.terms') }}" target="_blank" class="text-primary hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Terms of Service</a> and <a href="{{ route('legal.privacy') }}" target="_blank" class="text-primary hover:text-primary-600 dark:hover:text-primary-400 transition-colors">Privacy Policy</a>
                 </label>
             </div>
 

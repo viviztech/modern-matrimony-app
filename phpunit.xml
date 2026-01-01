@@ -3,6 +3,11 @@
          xsi:noNamespaceSchemaLocation="vendor/phpunit/phpunit/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true"
+         executionOrder="random"
+         cacheDirectory="build/.phpunit.cache"
+         beStrictAboutOutputDuringTests="true"
+         failOnRisky="true"
+         failOnWarning="true"
 >
     <testsuites>
         <testsuite name="Unit">
@@ -10,24 +15,88 @@
         </testsuite>
         <testsuite name="Feature">
             <directory>tests/Feature</directory>
+            <exclude>tests/Feature/Browser</exclude>
+        </testsuite>
+        <testsuite name="Database">
+            <directory>tests/Feature/Database</directory>
+        </testsuite>
+        <testsuite name="Api">
+            <directory>tests/Feature/Api</directory>
+        </testsuite>
+        <testsuite name="Integration">
+            <directory>tests/Integration</directory>
+        </testsuite>
+        <testsuite name="Performance">
+            <directory>tests/Performance</directory>
         </testsuite>
     </testsuites>
     <source>
         <include>
             <directory>app</directory>
         </include>
+        <exclude>
+            <directory>app/Console</directory>
+            <file>app/Http/Kernel.php</file>
+            <file>app/Providers/AppServiceProvider.php</file>
+        </exclude>
     </source>
+    <coverage
+        includeUncoveredFiles="true"
+        pathCoverage="false"
+        ignoreDeprecatedCodeUnits="true"
+        disableCodeCoverageIgnore="false"
+    >
+        <report>
+            <html outputDirectory="build/coverage"/>
+            <text outputFile="php://stdout" showUncoveredFiles="true"/>
+            <clover outputFile="build/logs/clover.xml"/>
+        </report>
+    </coverage>
     <php>
+        <env name="APP_NAME" value="Matrimony Testing"/>
         <env name="APP_ENV" value="testing"/>
+        <env name="APP_KEY" value="base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="/>
+        <env name="APP_DEBUG" value="true"/>
         <env name="APP_MAINTENANCE_DRIVER" value="file"/>
+
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
+
+        <!-- Database Configuration -->
         <env name="DB_CONNECTION" value="sqlite"/>
         <env name="DB_DATABASE" value=":memory:"/>
+
+        <!-- Mail Configuration -->
         <env name="MAIL_MAILER" value="array"/>
+
+        <!-- Queue Configuration -->
         <env name="QUEUE_CONNECTION" value="sync"/>
+
+        <!-- Session Configuration -->
         <env name="SESSION_DRIVER" value="array"/>
+
+        <!-- Search Configuration -->
+        <env name="SCOUT_DRIVER" value="collection"/>
+        <env name="MEILISEARCH_HOST" value="http://localhost:7700"/>
+        <env name="MEILISEARCH_KEY" value="test_key"/>
+
+        <!-- Payment Configuration (Test Mode) -->
+        <env name="RAZORPAY_KEY" value="rzp_test_key"/>
+        <env name="RAZORPAY_SECRET" value="test_secret"/>
+
+        <!-- Storage Configuration -->
+        <env name="FILESYSTEM_DISK" value="local"/>
+
+        <!-- Reverb Configuration -->
+        <env name="REVERB_APP_ID" value="test_app_id"/>
+        <env name="REVERB_APP_KEY" value="test_app_key"/>
+        <env name="REVERB_APP_SECRET" value="test_app_secret"/>
+        <env name="REVERB_HOST" value="localhost"/>
+        <env name="REVERB_PORT" value="8080"/>
+        <env name="REVERB_SCHEME" value="http"/>
+
+        <!-- Disable Monitoring Tools -->
         <env name="PULSE_ENABLED" value="false"/>
         <env name="TELESCOPE_ENABLED" value="false"/>
         <env name="NIGHTWATCH_ENABLED" value="false"/>

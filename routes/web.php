@@ -14,8 +14,14 @@ use App\Http\Controllers\StoryController;
 use App\Http\Controllers\GameController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Admin\ModerationController;
+use App\Http\Controllers\AnalyticsController;
+use App\Http\Controllers\HealthCheckController;
 use App\Http\Middleware\EnsureUserIsAdmin;
 use Illuminate\Support\Facades\Route;
+
+// Health check routes (no auth required - for monitoring)
+Route::get('/health', [HealthCheckController::class, 'index'])->name('health.check');
+Route::get('/health/simple', [HealthCheckController::class, 'simple'])->name('health.simple');
 
 // Homepage
 Route::get('/', function () {
@@ -150,6 +156,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/search/saved/{savedSearch}', [SearchController::class, 'deleteSavedSearch'])->name('search.saved.delete');
     Route::get('/search/saved/{savedSearch}/run', [SearchController::class, 'runSavedSearch'])->name('search.saved.run');
     Route::post('/profile/boost', [SearchController::class, 'boostProfile'])->name('profile.boost');
+
+    // Analytics routes (User)
+    Route::get('/analytics', [AnalyticsController::class, 'index'])->name('analytics.index');
+    Route::get('/analytics/profile-views', [AnalyticsController::class, 'profileViews'])->name('analytics.profile-views');
+    Route::get('/analytics/engagement', [AnalyticsController::class, 'engagementStats'])->name('analytics.engagement');
+    Route::get('/analytics/export', [AnalyticsController::class, 'export'])->name('analytics.export');
 });
 
 // Subscription & Payment routes
@@ -196,6 +208,20 @@ Route::middleware(['auth', EnsureUserIsAdmin::class])->prefix('admin')->name('ad
 
     // Activity logs
     Route::get('/moderation/activity-logs', [ModerationController::class, 'activityLogs'])->name('moderation.logs');
+
+    // Analytics routes (Admin)
+    Route::get('/analytics', [AnalyticsController::class, 'adminDashboard'])->name('analytics.dashboard');
+    Route::get('/analytics/users', [AnalyticsController::class, 'userMetrics'])->name('analytics.users');
+    Route::get('/analytics/engagement', [AnalyticsController::class, 'engagementMetrics'])->name('analytics.engagement');
+    Route::get('/analytics/revenue', [AnalyticsController::class, 'revenueMetrics'])->name('analytics.revenue');
+    Route::get('/analytics/cohorts', [AnalyticsController::class, 'cohortAnalysis'])->name('analytics.cohorts');
+    Route::get('/analytics/conversion-funnel', [AnalyticsController::class, 'conversionFunnel'])->name('analytics.conversion-funnel');
+    Route::post('/analytics/clear-cache', [AnalyticsController::class, 'clearCache'])->name('analytics.clear-cache');
 });
+
+// Legal pages (public)
+Route::view('/privacy-policy', 'legal.privacy-policy')->name('legal.privacy');
+Route::view('/terms-of-service', 'legal.terms-of-service')->name('legal.terms');
+Route::view('/cookie-policy', 'legal.cookie-policy')->name('legal.cookies');
 
 require __DIR__.'/auth.php';

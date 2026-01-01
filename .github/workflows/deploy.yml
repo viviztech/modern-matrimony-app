@@ -1,0 +1,105 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: https://yourapp.com
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: dom, curl, libxml, mbstring, zip, pcntl, pdo, mysql, bcmath, soap, intl, gd, exif, iconv
+
+      - name: Install Composer dependencies
+        run: composer install --prefer-dist --no-interaction --no-dev --optimize-autoloader
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install NPM dependencies
+        run: npm ci
+
+      - name: Build assets
+        run: npm run build
+
+      - name: Create deployment archive
+        run: |
+          tar -czf deployment.tar.gz \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=tests \
+            --exclude=storage/logs \
+            --exclude=.env \
+            .
+
+      - name: Deploy to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          source: deployment.tar.gz
+          target: /tmp/
+
+      - name: Run deployment script
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /var/www/matrimony
+
+            # Backup current deployment
+            tar -czf backup-$(date +%Y%m%d-%H%M%S).tar.gz .
+
+            # Extract new deployment
+            tar -xzf /tmp/deployment.tar.gz -C /var/www/matrimony
+
+            # Run deployment steps
+            php artisan down
+            php artisan migrate --force
+            php artisan config:cache
+            php artisan route:cache
+            php artisan view:cache
+            php artisan event:cache
+            php artisan queue:restart
+            php artisan up
+
+            # Clean up
+            rm /tmp/deployment.tar.gz
+
+            # Restart services
+            sudo systemctl restart php8.2-fpm
+            sudo supervisorctl restart all
+
+      - name: Health Check
+        run: |
+          sleep 10
+          curl --fail https://yourapp.com/health || exit 1
+
+      - name: Notify Slack
+        if: always()
+        uses: 8398a7/action-slack@v3
+        with:
+          status: ${{ job.status }}
+          text: 'Deployment ${{ job.status }}'
+          webhook_url: ${{ secrets.SLACK_WEBHOOK }}
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}

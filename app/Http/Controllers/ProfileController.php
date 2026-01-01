@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
+use App\Services\AnalyticsService;
+use App\Models\UserActivity;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +13,13 @@ use Illuminate\View\View;
 
 class ProfileController extends Controller
 {
+    protected $analyticsService;
+
+    public function __construct(AnalyticsService $analyticsService)
+    {
+        $this->analyticsService = $analyticsService;
+    }
+
     /**
      * Display the user's profile form.
      */
@@ -33,6 +42,13 @@ class ProfileController extends Controller
         }
 
         $request->user()->save();
+
+        // Track profile edit activity
+        $this->analyticsService->trackActivity(
+            $request->user(),
+            UserActivity::TYPE_PROFILE_EDIT,
+            ['fields_updated' => array_keys($request->validated())]
+        );
 
         return Redirect::route('profile.edit')->with('status', 'profile-updated');
     }

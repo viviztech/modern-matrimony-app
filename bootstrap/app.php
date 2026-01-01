@@ -13,11 +13,36 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // Web middleware group - user activity tracking
+        $middleware->web(append: [
+            \App\Http\Middleware\TrackUserActivity::class,
+            \App\Http\Middleware\UpdateUserOnlineStatus::class,
+            \App\Http\Middleware\SecurityHeaders::class,
+        ]);
+
+        // API middleware group - feature-based rate limiting
+        $middleware->api(append: [
+            \App\Http\Middleware\ThrottleWithFeatureGate::class,
+        ]);
     })
     ->withSchedule(function (Schedule $schedule): void {
         // Delete expired stories every hour
         $schedule->command('stories:delete-expired')->hourly();
+
+        // Calculate daily metrics at 1 AM
+        $schedule->command('analytics:calculate-daily-metrics')
+                 ->dailyAt('01:00')
+                 ->withoutOverlapping();
+
+        // Process account deletions (30-day grace period)
+        $schedule->command('users:process-deletions')
+                 ->daily()
+                 ->withoutOverlapping();
+
+        // Clean old sessions
+        $schedule->command('session:gc')
+                 ->daily()
+                 ->withoutOverlapping();
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

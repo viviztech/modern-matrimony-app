@@ -28,7 +28,7 @@
                     </p>
 
                     <!-- Expandable Settings -->
-                    <div x-show="showSettings" x-collapse class="mb-4 space-y-3">
+                    <div x-show="showSettings" class="mb-4 space-y-3 transition-all duration-300">
                         <div class="bg-white/10 backdrop-blur rounded-lg p-4 space-y-3">
                             <!-- Essential Cookies -->
                             <label class="flex items-start cursor-not-allowed opacity-75">
@@ -108,130 +108,7 @@
 
 @push('scripts')
 <script>
-function cookieConsent() {
-    return {
-        hasConsent: false,
-        showSettings: false,
-        preferences: {
-            essential: true, // Always true
-            functional: true,
-            analytics: true,
-            marketing: false
-        },
-
-        init() {
-            // Check if user has already given consent
-            const consent = this.getCookie('cookie_consent');
-            this.hasConsent = consent !== null;
-
-            // Load saved preferences if they exist
-            if (consent) {
-                try {
-                    const saved = JSON.parse(consent);
-                    this.preferences = { ...this.preferences, ...saved };
-                } catch (e) {
-                    console.error('Error parsing cookie preferences:', e);
-                }
-            }
-
-            // Apply saved preferences
-            if (this.hasConsent) {
-                this.applyPreferences();
-            }
-        },
-
-        toggleSettings() {
-            this.showSettings = !this.showSettings;
-        },
-
-        acceptAll() {
-            this.preferences = {
-                essential: true,
-                functional: true,
-                analytics: true,
-                marketing: true
-            };
-            this.saveConsent();
-        },
-
-        rejectAll() {
-            this.preferences = {
-                essential: true,
-                functional: false,
-                analytics: false,
-                marketing: false
-            };
-            this.saveConsent();
-        },
-
-        acceptSelected() {
-            this.saveConsent();
-        },
-
-        saveConsent() {
-            // Save preferences to cookie (1 year expiry)
-            this.setCookie('cookie_consent', JSON.stringify(this.preferences), 365);
-            this.hasConsent = true;
-            this.showSettings = false;
-
-            // Apply the preferences
-            this.applyPreferences();
-
-            // Optional: Send consent to backend
-            this.sendConsentToBackend();
-        },
-
-        applyPreferences() {
-            // Apply analytics if enabled
-            if (this.preferences.analytics) {
-                this.enableAnalytics();
-            }
-
-            // Apply marketing if enabled
-            if (this.preferences.marketing) {
-                this.enableMarketing();
-            }
-        },
-
-        enableAnalytics() {
-            // Initialize analytics services (e.g., Google Analytics, custom analytics)
-            console.log('Analytics enabled');
-            // Example: gtag('config', 'GA_MEASUREMENT_ID');
-        },
-
-        enableMarketing() {
-            // Initialize marketing/advertising services
-            console.log('Marketing cookies enabled');
-        },
-
-        sendConsentToBackend() {
-            // Optional: Send consent preferences to backend for logging
-            fetch('/api/cookie-consent', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify(this.preferences)
-            }).catch(err => console.error('Error saving consent:', err));
-        },
-
-        setCookie(name, value, days) {
-            const expires = new Date();
-            expires.setTime(expires.getTime() + (days * 24 * 60 * 60 * 1000));
-            document.cookie = `${name}=${value};expires=${expires.toUTCString()};path=/;SameSite=Lax`;
-        },
-
-        getCookie(name) {
-            const value = `; ${document.cookie}`;
-            const parts = value.split(`; ${name}=`);
-            if (parts.length === 2) {
-                return parts.pop().split(';').shift();
-            }
-            return null;
-        }
-    }
-}
+// Cookie consent functionality is now loaded via Alpine.data in app.js
 </script>
 @endpush
 

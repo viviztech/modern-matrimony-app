@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
 import { visualizer } from 'rollup-plugin-visualizer';
-import viteCompression from 'vite-plugin-compression';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
     plugins: [
@@ -9,22 +9,7 @@ export default defineConfig({
             input: ['resources/css/app.css', 'resources/js/app.js'],
             refresh: true,
         }),
-        // Gzip compression
-        viteCompression({
-            verbose: true,
-            disable: false,
-            threshold: 10240,
-            algorithm: 'gzip',
-            ext: '.gz',
-        }),
-        // Brotli compression
-        viteCompression({
-            verbose: true,
-            disable: false,
-            threshold: 10240,
-            algorithm: 'brotliCompress',
-            ext: '.br',
-        }),
+        tailwindcss(),
         // Bundle analyzer (only in analysis mode)
         process.env.ANALYZE && visualizer({
             filename: './storage/stats.html',

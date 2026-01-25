@@ -499,6 +499,29 @@ class User extends Authenticatable implements MustVerifyEmail
     {
         $profile = $this->profile;
 
+        // Pre-load verification counts to avoid N+1 queries
+        $verificationCount = 0;
+        $emailVerified = !is_null($this->email_verified_at);
+        $phoneVerified = !is_null($this->phone_verified_at);
+        $videoVerified = !is_null($this->video_verified_at);
+
+        if ($emailVerified) $verificationCount++;
+        if ($phoneVerified) $verificationCount++;
+        if ($videoVerified) $verificationCount++;
+
+        // Check social verifications - use exists() to avoid loading all records
+        $hasLinkedIn = SocialAccount::where('user_id', $this->id)->where('provider', 'linkedin')->where('verified', true)->exists();
+        $hasInstagram = SocialAccount::where('user_id', $this->id)->where('provider', 'instagram')->where('verified', true)->exists();
+        $hasFacebook = SocialAccount::where('user_id', $this->id)->where('provider', 'facebook')->where('verified', true)->exists();
+
+        if ($hasLinkedIn) $verificationCount++;
+        if ($hasInstagram) $verificationCount++;
+        if ($hasFacebook) $verificationCount++;
+
+        // Count photos using cached count if available
+        $photosCount = $this->relationLoaded('photos') ? $this->photos->count() : $this->photos()->count();
+        $hasPhotos = $photosCount > 0;
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -545,15 +568,15 @@ class User extends Authenticatable implements MustVerifyEmail
 
             // Verification flags
             'has_video_intro' => !empty($profile?->video_intro_url),
-            'email_verified' => $this->hasVerifiedEmail(),
-            'phone_verified' => $this->hasVerifiedPhone(),
-            'video_verified' => $this->hasVerifiedVideo(),
-            'is_verified' => $this->hasVerifiedPhone() || $this->hasVerifiedVideo(),
-            'verification_count' => $this->getVerificationCount(),
+            'email_verified' => $emailVerified,
+            'phone_verified' => $phoneVerified,
+            'video_verified' => $videoVerified,
+            'is_verified' => $phoneVerified || $videoVerified,
+            'verification_count' => $verificationCount,
 
             // Photos
-            'has_photos' => $this->photos()->count() > 0,
-            'photos_count' => $this->photos()->count(),
+            'has_photos' => $hasPhotos,
+            'photos_count' => $photosCount,
 
             // Activity metrics
             'profile_completion' => $this->profile_completion_percentage ?? 0,

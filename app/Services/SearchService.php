@@ -10,6 +10,24 @@ use Illuminate\Support\Collection;
 class SearchService
 {
     /**
+     * Escape a value for use in Meilisearch filter.
+     */
+    protected function escapeValue(mixed $value): string
+    {
+        if (is_bool($value)) {
+            return $value ? 'true' : 'false';
+        }
+        if (is_numeric($value)) {
+            return (string) $value;
+        }
+        if (is_null($value)) {
+            return 'null';
+        }
+        // Escape special characters and wrap in quotes
+        return '"' . addslashes((string) $value) . '"';
+    }
+
+    /**
      * Build and execute search query.
      */
     public function search(array $filters, User $currentUser, int $perPage = 20): array
@@ -80,11 +98,11 @@ class SearchService
 
         // Gender filter (opposite of current user for heterosexual matches)
         if (!empty($filters['gender'])) {
-            $conditions[] = "gender = '{$filters['gender']}'";
+            $conditions[] = 'gender = ' . $this->escapeValue($filters['gender']);
         } else {
             // Default: opposite gender
             $oppositeGender = $currentUser->gender === 'male' ? 'female' : 'male';
-            $conditions[] = "gender = '{$oppositeGender}'";
+            $conditions[] = 'gender = ' . $this->escapeValue($oppositeGender);
         }
 
         // Age range
@@ -105,88 +123,88 @@ class SearchService
 
         // Location filters
         if (!empty($filters['city'])) {
-            $conditions[] = "city = '{$filters['city']}'";
+            $conditions[] = 'city = ' . $this->escapeValue($filters['city']);
         }
         if (!empty($filters['state'])) {
-            $conditions[] = "state = '{$filters['state']}'";
+            $conditions[] = 'state = ' . $this->escapeValue($filters['state']);
         }
         if (!empty($filters['country'])) {
-            $conditions[] = "country = '{$filters['country']}'";
+            $conditions[] = 'country = ' . $this->escapeValue($filters['country']);
         }
 
         // Religion
         if (!empty($filters['religion'])) {
             if (is_array($filters['religion'])) {
-                $religions = array_map(fn($r) => "religion = '{$r}'", $filters['religion']);
-                $conditions[] = '(' . implode(' OR ', $religions) . ')';
+                $escapedReligions = array_map(fn($r) => 'religion = ' . $this->escapeValue($r), $filters['religion']);
+                $conditions[] = '(' . implode(' OR ', $escapedReligions) . ')';
             } else {
-                $conditions[] = "religion = '{$filters['religion']}'";
+                $conditions[] = 'religion = ' . $this->escapeValue($filters['religion']);
             }
         }
 
         // Caste
         if (!empty($filters['caste'])) {
-            $conditions[] = "caste = '{$filters['caste']}'";
+            $conditions[] = 'caste = ' . $this->escapeValue($filters['caste']);
         }
 
         // Mother tongue
         if (!empty($filters['mother_tongue'])) {
             if (is_array($filters['mother_tongue'])) {
-                $tongues = array_map(fn($t) => "mother_tongue = '{$t}'", $filters['mother_tongue']);
-                $conditions[] = '(' . implode(' OR ', $tongues) . ')';
+                $escapedTongues = array_map(fn($t) => 'mother_tongue = ' . $this->escapeValue($t), $filters['mother_tongue']);
+                $conditions[] = '(' . implode(' OR ', $escapedTongues) . ')';
             } else {
-                $conditions[] = "mother_tongue = '{$filters['mother_tongue']}'";
+                $conditions[] = 'mother_tongue = ' . $this->escapeValue($filters['mother_tongue']);
             }
         }
 
         // Education
         if (!empty($filters['education'])) {
             if (is_array($filters['education'])) {
-                $educations = array_map(fn($e) => "education = '{$e}'", $filters['education']);
-                $conditions[] = '(' . implode(' OR ', $educations) . ')';
+                $escapedEducations = array_map(fn($e) => 'education = ' . $this->escapeValue($e), $filters['education']);
+                $conditions[] = '(' . implode(' OR ', $escapedEducations) . ')';
             } else {
-                $conditions[] = "education = '{$filters['education']}'";
+                $conditions[] = 'education = ' . $this->escapeValue($filters['education']);
             }
         }
 
         // Occupation
         if (!empty($filters['occupation'])) {
-            $conditions[] = "occupation = '{$filters['occupation']}'";
+            $conditions[] = 'occupation = ' . $this->escapeValue($filters['occupation']);
         }
 
         // Income range
         if (!empty($filters['annual_income_range'])) {
-            $conditions[] = "annual_income_range = '{$filters['annual_income_range']}'";
+            $conditions[] = 'annual_income_range = ' . $this->escapeValue($filters['annual_income_range']);
         }
 
         // Marital status
         if (!empty($filters['marital_status'])) {
             if (is_array($filters['marital_status'])) {
-                $statuses = array_map(fn($s) => "marital_status = '{$s}'", $filters['marital_status']);
-                $conditions[] = '(' . implode(' OR ', $statuses) . ')';
+                $escapedStatuses = array_map(fn($s) => 'marital_status = ' . $this->escapeValue($s), $filters['marital_status']);
+                $conditions[] = '(' . implode(' OR ', $escapedStatuses) . ')';
             } else {
-                $conditions[] = "marital_status = '{$filters['marital_status']}'";
+                $conditions[] = 'marital_status = ' . $this->escapeValue($filters['marital_status']);
             }
         }
 
         // Diet
         if (!empty($filters['diet'])) {
             if (is_array($filters['diet'])) {
-                $diets = array_map(fn($d) => "diet = '{$d}'", $filters['diet']);
-                $conditions[] = '(' . implode(' OR ', $diets) . ')';
+                $escapedDiets = array_map(fn($d) => 'diet = ' . $this->escapeValue($d), $filters['diet']);
+                $conditions[] = '(' . implode(' OR ', $escapedDiets) . ')';
             } else {
-                $conditions[] = "diet = '{$filters['diet']}'";
+                $conditions[] = 'diet = ' . $this->escapeValue($filters['diet']);
             }
         }
 
         // Drinking
         if (!empty($filters['drinking'])) {
-            $conditions[] = "drinking = '{$filters['drinking']}'";
+            $conditions[] = 'drinking = ' . $this->escapeValue($filters['drinking']);
         }
 
         // Smoking
         if (!empty($filters['smoking'])) {
-            $conditions[] = "smoking = '{$filters['smoking']}'";
+            $conditions[] = 'smoking = ' . $this->escapeValue($filters['smoking']);
         }
 
         // Children

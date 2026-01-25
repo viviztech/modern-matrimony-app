@@ -28,6 +28,16 @@ Route::get('/', function () {
     return view('welcome');
 })->name('home');
 
+// Marketing Pages
+Route::view('/features', 'marketing.features')->name('features');
+Route::view('/pricing', 'marketing.pricing')->name('pricing');
+Route::view('/about', 'marketing.about')->name('about');
+Route::view('/faq', 'marketing.faq')->name('faq');
+Route::view('/contact', 'marketing.contact')->name('contact');
+
+// How It Works Page
+Route::view('/how-it-works', 'marketing.how-it-works')->name('how-it-works');
+
 // Onboarding routes (auth required, but not verified)
 Route::middleware(['auth'])->group(function () {
     Route::get('/onboarding/step1', [OnboardingController::class, 'step1'])->name('onboarding.step1');

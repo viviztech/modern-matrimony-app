@@ -1,7 +1,7 @@
-# Test Credentials - Modern Matrimony App
+# Test Credentials - Aadhi Matrimony App
 
 ## Admin Account
-**Email:** admin@matrimony.app
+**Email:** admin@aadhi.matrimony
 **Password:** password
 **Premium:** Yes (Valid until 2035)
 **Features:** Full access, all premium features enabled, admin moderation panel
@@ -20,7 +20,7 @@
 ## Test User Accounts
 
 ### User 1 - John Doe (Male)
-**Email:** john@example.com
+**Email:** john@aadhi.matrimony
 **Password:** password123
 **Profile:**
 - Age: 33 years
@@ -40,7 +40,7 @@
 ---
 
 ### User 2 - Jane Smith (Female)
-**Email:** jane@example.com
+**Email:** jane@aadhi.matrimony
 **Password:** password123
 **Profile:**
 - Age: 31 years
@@ -62,7 +62,7 @@
 ## Existing Seeded Users
 
 The database contains 53 users created by the factory seeder. First user:
-- **Email:** test@example.com
+- **Email:** test@aadhi.matrimony
 - **Password:** password (default from factory)
 
 Other seeded users:

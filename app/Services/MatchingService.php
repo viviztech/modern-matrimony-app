@@ -203,15 +203,18 @@ class MatchingService
      */
     protected function getExcludedUserIds(User $user): array
     {
-        $likedIds = Like::where('user_id', $user->id)->pluck('liked_user_id')->toArray();
+        // Use a single query with UNION to get all excluded IDs efficiently
+        $likedIds = Like::where('user_id', $user->id)->pluck('liked_user_id');
+        
+        // Get matched user IDs in a single query
         $matchedIds = UserMatch::where(function ($q) use ($user) {
-            $q->where('user_id', $user->id)
-              ->orWhere('matched_user_id', $user->id);
-        })->get()->map(function ($match) use ($user) {
-            return $match->user_id === $user->id ? $match->matched_user_id : $match->user_id;
-        })->toArray();
+                $q->where('user_id', $user->id)
+                  ->orWhere('matched_user_id', $user->id);
+            })->get()->map(function ($match) use ($user) {
+                return $match->user_id === $user->id ? $match->matched_user_id : $match->user_id;
+            });
 
-        return array_unique(array_merge($likedIds, $matchedIds));
+        return array_unique(array_merge($likedIds->toArray(), $matchedIds->toArray()));
     }
 
     /**

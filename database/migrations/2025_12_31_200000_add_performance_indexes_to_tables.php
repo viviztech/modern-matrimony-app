@@ -22,7 +22,7 @@ return new class extends Migration
 
         // Profiles table indexes
         Schema::table('profiles', function (Blueprint $table) {
-            $table->index(['user_id', 'is_complete'], 'idx_profiles_user_complete');
+            $table->index(['user_id', 'profile_completed_at'], 'idx_profiles_user_complete');
             $table->index(['religion', 'caste'], 'idx_profiles_religion_caste');
             $table->index('education_level', 'idx_profiles_education');
             $table->index('annual_income', 'idx_profiles_income');

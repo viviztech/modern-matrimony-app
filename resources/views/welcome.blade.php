@@ -345,7 +345,7 @@
                 </div>
 
                 <!-- Silver Plan -->
-                <div class="bg-white p-8 rounded-3xl shadow-xl border-2 border-taxi-yellow transform scale-105 relative">
+                <div class="bg-white p-8 rounded-3xl shadow-xl border-2 border-taxi-yellow md:transform md:scale-105 md:relative z-10">
                     <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-taxi-yellow to-taxi-yellow-dark text-white text-xs font-semibold px-4 py-1 rounded-full">EARLY BIRD</div>
                     <h3 class="text-2xl font-bold text-gray-900 mb-2">Premium</h3>
                     <div class="mb-6">

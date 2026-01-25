@@ -79,7 +79,7 @@
             </div>
 
             <!-- Premium Plan -->
-            <div class="bg-white rounded-3xl shadow-xl border-2 border-taxi-yellow transform scale-105 relative">
+            <div class="bg-white rounded-3xl shadow-xl border-2 border-taxi-yellow md:transform md:scale-105 md:relative z-10">
                 <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-gradient-to-r from-taxi-yellow to-taxi-yellow-dark text-white text-sm font-semibold px-4 py-1 rounded-full">
                     MOST POPULAR
                 </div>

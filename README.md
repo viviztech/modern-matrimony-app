@@ -1,59 +1,192 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
-
 <p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+  <a href="#">
+    <img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="200" alt="Aadhi Matrimony Logo">
+  </a>
 </p>
 
-## About Laravel
+<h1 align="center">Aadhi Matrimony</h1>
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+<p align="center">
+  The modern way to find your perfect life partner. AI-powered matchmaking with video profiles and verified connections.
+</p>
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#pages">Pages</a> •
+  <a href="#license">License</a>
+</p>
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+---
 
-## Learning Laravel
+## ✨ Features
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### Core Features
+- **🎥 Video Profiles** - 30-second video introductions for authentic connections
+- **🤖 AI-Powered Matching** - Smart compatibility scores based on personality, interests, and values
+- **✅ Verification System** - Phone OTP and video verification for trustworthy connections
+- **💬 Real-time Chat** - Instant messaging with voice notes and icebreakers
+- **📹 Video Calls** - Face-to-face conversations with your matches
+- **🎮 Interactive Games** - Fun compatibility quizzes to break the ice
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Additional Features
+- **📊 Profile Analytics** - Track views, likes, and engagement metrics
+- **🚀 Profile Boosts** - Increase your visibility with profile boosts
+- **🌙 Dark Mode** - Beautiful dark/light theme toggle
+- **📱 Responsive Design** - Works seamlessly on all devices
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🚀 Tech Stack
 
-### Premium Partners
+- **Backend:** Laravel 11, PHP 8.2+
+- **Frontend:** Tailwind CSS v4, Alpine.js
+- **Database:** MySQL/PostgreSQL
+- **Search:** MeiliSearch
+- **Real-time:** Laravel Reverb (WebSocket)
+- **Payment:** Razorpay
+- **Build Tool:** Vite
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+---
 
-## Contributing
+## 📦 Getting Started
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Prerequisites
+- PHP 8.2 or higher
+- Composer
+- Node.js & npm
+- MySQL or PostgreSQL
+- MeiliSearch (optional, for advanced search)
 
-## Code of Conduct
+### Installation
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/viviztech/modern-matrimony-app.git
+   cd modern-matrimony-app
+   ```
 
-## Security Vulnerabilities
+2. **Install PHP dependencies**
+   ```bash
+   composer install
+   ```
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+3. **Install JavaScript dependencies**
+   ```bash
+   npm install
+   ```
 
-## License
+4. **Setup environment variables**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+5. **Configure your `.env` file**
+   - Set database credentials
+   - Add payment gateway keys (Razorpay)
+   - Configure MeiliSearch (optional)
+
+6. **Run migrations and seed**
+   ```bash
+   php artisan migrate --seed
+   ```
+
+7. **Build assets**
+   ```bash
+   npm run build
+   ```
+
+8. **Start the development server**
+   ```bash
+   php artisan serve
+   ```
+
+9. **Start Vite for hot reloading (in a separate terminal)**
+   ```bash
+   npm run dev
+   ```
+
+---
+
+## 📄 Pages
+
+| Route | Description |
+|-------|-------------|
+| `/` | Landing page with hero, features, pricing |
+| `/features` | App features showcase |
+| `/how-it-works` | 4-step process guide |
+| `/pricing` | Subscription plans (₹0/₹799/₹1,499) |
+| `/about` | Company story and values |
+| `/faq` | Frequently asked questions |
+| `/contact` | Contact form and information |
+| `/register` | User registration |
+| `/login` | User login |
+| `/privacy-policy` | Privacy policy |
+| `/terms-of-service` | Terms of service |
+| `/cookie-policy` | Cookie policy |
+
+---
+
+## 🛠️ Development
+
+### Running Tests
+```bash
+php artisan test
+```
+
+### Code Style
+```bash
+# Format PHP code
+composer format
+
+# Format JavaScript/CSS
+npm run format
+```
+
+### Database Migrations
+```bash
+# Create new migration
+php artisan make:migration create_users_table
+
+# Run migrations
+php artisan migrate
+
+# Rollback migrations
+php artisan migrate:rollback
+```
+
+### Clear Cache
+```bash
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+```
+
+---
+
+## 🔒 Security
+
+If you discover any security vulnerabilities, please send an e-mail to security@aadhimatrimony.com instead of opening a public issue.
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- [Laravel](https://laravel.com) - The PHP framework used
+- [Tailwind CSS](https://tailwindcss.com) - CSS framework
+- [Alpine.js](https://alpinejs.dev) - Lightweight JavaScript framework
+- [Laravel Breeze](https://laravel.com/docs/starter-kits) - Authentication scaffolding
+
+---
+
+<p align="center">
+  Made with ❤️ by <a href="#">Aadhi Matrimony Team</a>
+</p>
